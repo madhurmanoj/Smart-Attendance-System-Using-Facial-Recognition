@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Attendance</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/theme.css') }}" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <style>
+        .card {
+            border-radius: 50px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            width: 1200px;
+            margin: 0 auto;
+        }
+        .table-container {
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        .centered {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        h2 {
+            font-size: 2.5rem;
+            margin-bottom: 2rem;
+        }
+        .card-body {
+            padding: 2rem;
+        }
+        .btn-control {
+            padding: 20px 40px;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+        .back-home-btn {
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: 500;
+            font-size: 0.9rem;
+            background-color: #ffc107;
+            border: 2px solid #ffc107;
+            color: #000;
+            transition: all 0.3s ease;
+        }
+        .back-home-btn:hover {
+            background-color: #ffca2c;
+            border-color: #ffca2c;
+            color: #000;
+        }
+        .status-badge {
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-weight: 500;
+        }
+        .status-present {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .status-absent {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .date-picker-container {
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+        .date-picker-container label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+            font-weight: 500;
+        }
+        .flatpickr-input {
+            padding: 10px 20px;
+            border-radius: 25px;
+            border: 2px solid #dee2e6;
+            font-size: 1.1rem;
+            width: 300px;
+            text-align: center;
+            cursor: pointer;
+        }
+        .flatpickr-input:hover {
+            border-color: #adb5bd;
+        }
+        .flatpickr-input:focus {
+            border-color: #0d6efd;
+            outline: none;
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+        }
+        [data-bs-theme="dark"] .flatpickr-input {
+            background-color: #212529;
+            border-color: #495057;
+            color: #fff;
+        }
+        [data-bs-theme="dark"] .flatpickr-input:hover {
+            border-color: #6c757d;
+        }
+        [data-bs-theme="dark"] .flatpickr-input:focus {
+            border-color: #0d6efd;
+        }
+    </style>
+</head>
+<body>
+    <button class="theme-toggle" id="themeToggle">
+        <i class="fas fa-moon"></i>
+    </button>
+    <div class="centered">
+        <div class="card">
+            <div class="card-body">
+                <h2 class="text-center">View Attendance</h2>
+                <div class="date-picker-container">
+                    <label for="datePicker">Select Date:</label>
+                    <input type="text" id="datePicker" class="flatpickr-input" placeholder="Click to select date">
+                </div>
+                <div class="text-center mb-4">
+                    <a href="#" id="viewAttendanceBtn" class="btn btn-primary btn-control">
+                        View Attendance
+                    </a>
+                    <a href="/login" class="btn btn-danger btn-control ms-2">
+                        <i class="fas fa-sign-out-alt me-2"></i>Logout
+                    </a>
+                </div>
+                <div class="table-container">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr id="tableHeader">
+                                <!-- Headers will be populated dynamically -->
+                            </tr>
+                        </thead>
+                        <tbody id="attendanceTableBody">
+                            <!-- Data will be populated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+                <div class="text-center mt-4">
+                    <a href="/" class="btn back-home-btn">
+                        <i class="fas fa-home me-2"></i>Back to Home
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="{{ url_for('static', filename='js/theme.js') }}"></script>
+    <script>
+        // Initialize Flatpickr
+        const fp = flatpickr("#datePicker", {
+            dateFormat: "Y-m-d",
+            maxDate: "today",
+            disableMobile: "true",
+            onChange: function(selectedDates, dateStr) {
+                console.log('Date selected:', dateStr);
+            }
+        });
+
+        // Fetch available dates and set them as enabled dates in the calendar
+        async function fetchDates() {
+            try {
+                const response = await fetch('/get_dates');
+                const data = await response.json();
+                
+                if (data.dates && data.dates.length > 0) {
+                    // Enable only the dates that have attendance records
+                    fp.set('enable', data.dates);
+                    console.log('Dates populated in calendar:', data.dates);
+                } else {
+                    console.log('No dates available');
+                }
+            } catch (error) {
+                console.error('Error fetching dates:', error);
+            }
+        }
+
+        // View Attendance button click handler
+        document.getElementById('viewAttendanceBtn').addEventListener('click', () => {
+            const selectedDate = document.getElementById('datePicker').value;
+            if (selectedDate) {
+                window.location.href = `/attendance_details?date=${selectedDate}`;
+            } else {
+                alert('Please select a date.');
+            }
+        });
+
+        // Call fetchDates when the page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Page loaded, fetching dates...');
+            fetchDates();
+        });
+    </script>
+</body>
+</html> 

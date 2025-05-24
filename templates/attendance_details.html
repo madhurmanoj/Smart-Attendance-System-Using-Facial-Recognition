@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attendance Details</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/theme.css') }}" rel="stylesheet">
+    <style>
+        .card {
+            border-radius: 50px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            width: 1300px;
+            margin: 0 auto;
+        }
+        .table-container {
+            max-height: 600px;
+            overflow-y: auto;
+            margin-top: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .centered {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        h2 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+        .card-body {
+            padding: 2rem;
+        }
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+        .status-present {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .status-absent {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .back-btn {
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: 500;
+            font-size: 0.9rem;
+            background-color: #ffc107;
+            border: 2px solid #ffc107;
+            color: #000;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+        .back-btn:hover {
+            background-color: #ffca2c;
+            border-color: #ffca2c;
+            color: #000;
+        }
+        .home-btn {
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: 500;
+            font-size: 0.9rem;
+            background-color: #0d6efd;
+            border: 2px solid #0d6efd;
+            color: #fff;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            margin-top: 20px;
+        }
+        .home-btn:hover {
+            background-color: #0b5ed7;
+            border-color: #0b5ed7;
+            color: #fff;
+        }
+        .button-container {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .date-header {
+            font-size: 1.5rem;
+            color: #666;
+            margin-bottom: 1.5rem;
+        }
+        .table {
+            width: 100%;
+            margin-bottom: 0;
+            background-color: transparent;
+        }
+        .table th {
+            background-color: #f8f9fa;
+            position: sticky;
+            top: 0;
+            z-index: 1;
+            white-space: nowrap;
+            padding: 12px 15px;
+            font-weight: 600;
+            color: #495057;
+        }
+        .table td {
+            padding: 10px 12px;
+            vertical-align: middle;
+            border-top: 1px solid #dee2e6;
+            white-space: nowrap;
+        }
+        .table tbody tr:hover {
+            background-color: rgba(0,0,0,.03);
+        }
+        .summary-box {
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        .summary-item {
+            display: inline-block;
+            margin-right: 20px;
+            font-size: 1.1rem;
+        }
+        .summary-label {
+            font-weight: 600;
+            color: #666;
+        }
+        .student-info {
+            font-size: 0.9rem;
+            color: #666;
+        }
+        .student-name {
+            font-weight: 600;
+            color: #333;
+        }
+        .student-id {
+            color: #666;
+            font-size: 0.85rem;
+        }
+    </style>
+</head>
+<body>
+    <button class="theme-toggle" id="themeToggle">
+        <i class="fas fa-moon"></i>
+    </button>
+    <div class="centered">
+        <div class="card">
+            <div class="card-body">
+                <a href="/view_attendance" class="back-btn">
+                    <i class="fas fa-arrow-left me-2"></i>Back to View Attendance
+                </a>
+                <h2 class="text-center">Attendance Details</h2>
+                <div class="date-header text-center" id="dateHeader">
+                    <!-- Date will be populated here -->
+                </div>
+                
+                <!-- Summary Box -->
+                <div class="summary-box text-center" id="summaryBox">
+                    <div class="summary-item">
+                        <span class="summary-label">Total Students:</span>
+                        <span id="totalStudents">-</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">Present:</span>
+                        <span id="presentCount">-</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">Absent:</span>
+                        <span id="absentCount">-</span>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr id="tableHeader">
+                                <!-- Headers will be populated here -->
+                            </tr>
+                        </thead>
+                        <tbody id="attendanceTableBody">
+                            <!-- Data will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="text-center">
+                    <a href="/" class="home-btn">
+                        <i class="fas fa-home me-2"></i>Back to Home
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/theme.js') }}"></script>
+    <script>
+        // Get date from URL parameter
+        const urlParams = new URLSearchParams(window.location.search);
+        const date = urlParams.get('date');
+
+        if (date) {
+            // Format date for display
+            const formattedDate = new Date(date).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+            document.getElementById('dateHeader').textContent = formattedDate;
+
+            // Fetch attendance data
+            fetch(`/get_attendance/${date}`)
+                .then(response => {
+                    console.log('Response status:', response.status);
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Received data:', data);  // Debug log
+                    
+                    // Use columns from backend response
+                    const headerRow = document.getElementById('tableHeader');
+                    const headers = data.columns || [];
+                    headerRow.innerHTML = headers.map(header => 
+                        `<th>${header}</th>`
+                    ).join('');
+
+                    // Create table rows
+                    const tableBody = document.getElementById('attendanceTableBody');
+                    let presentCount = 0;
+                    let absentCount = 0;
+
+                    if (data.status === 'success' && data.data && data.data.length > 0) {
+                        tableBody.innerHTML = data.data.map(row => {
+                            // Count present/absent if Status column exists
+                            if (row.Status === 'Present') presentCount++;
+                            if (row.Status === 'Absent') absentCount++;
+
+                            return `
+                                <tr>
+                                    ${headers.map(col => `<td>${row[col] !== undefined ? row[col] : '-'}</td>`).join('')}
+                                </tr>
+                            `;
+                        }).join('');
+
+                        // Update summary
+                        document.getElementById('totalStudents').textContent = data.data.length;
+                        document.getElementById('presentCount').textContent = presentCount;
+                        document.getElementById('absentCount').textContent = absentCount;
+                    } else {
+                        tableBody.innerHTML = `
+                            <tr>
+                                <td colspan="${headers.length}" class="text-center">
+                                    <div class="alert alert-info">
+                                        No attendance data available for this date
+                                    </div>
+                                </td>
+                            </tr>
+                        `;
+                        // Reset summary counts
+                        document.getElementById('totalStudents').textContent = '0';
+                        document.getElementById('presentCount').textContent = '0';
+                        document.getElementById('absentCount').textContent = '0';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching attendance:', error);
+                    document.getElementById('attendanceTableBody').innerHTML = `
+                        <tr>
+                            <td colspan="9" class="text-center">
+                                <div class="alert alert-danger">
+                                    Error loading attendance data. Please try again later.
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                    // Reset summary counts
+                    document.getElementById('totalStudents').textContent = '0';
+                    document.getElementById('presentCount').textContent = '0';
+                    document.getElementById('absentCount').textContent = '0';
+                });
+        }
+    </script>
+</body>
+</html> 

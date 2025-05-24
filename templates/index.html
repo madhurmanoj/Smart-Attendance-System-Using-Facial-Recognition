@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Attendance System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/theme.css') }}" rel="stylesheet">
+    <style>
+        .card {
+            border-radius: 80px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            width: 1000px;
+            height: 400px;
+            margin: 0 auto;
+        }
+        .centered {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            gap: 1rem;
+        }
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 2rem;
+            margin-top: 5rem;
+        }
+        .card-body {
+            padding: 2rem;
+        }
+        .btn-control {
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+        .view-attendance-btn {
+            margin-top: 8rem;
+        }
+        .status-badge {
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-weight: 500;
+        }
+        .status-present {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .status-absent {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .table-container {
+            max-height: 500px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <button class="theme-toggle" id="themeToggle">
+        <i class="fas fa-moon"></i>
+    </button>
+    <div class="centered">
+        <div class="card">
+            <div class="card-body text-center">
+                <h1>Smart Attendance System</h1>
+                <button id="startBtn" class="btn btn-success btn-control">Start Attendance</button>
+                <button id="stopBtn" class="btn btn-danger btn-control">Stop Attendance</button>
+            </div>
+        </div>
+        <a href="/login" class="btn btn-primary btn-control view-attendance-btn">View Attendance</a>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/theme.js') }}"></script>
+    <script>
+        let isRunning = false;
+        let statusMessageTimeout;
+        let autoStopTimeout;
+
+        function showMessage(message, type = 'info') {
+            const statusMessage = document.getElementById('statusMessage');
+            statusMessage.textContent = message;
+            statusMessage.className = `alert alert-${type} text-center`;
+            statusMessage.style.display = 'block';
+
+            clearTimeout(statusMessageTimeout);
+            statusMessageTimeout = setTimeout(() => {
+                statusMessage.style.display = 'none';
+            }, 3000);
+        }
+
+        async function fetchAttendance() {
+            try {
+                const response = await fetch('/get_attendance');
+                const data = await response.json();
+                if (data.status === 'success') {
+                    const tableBody = document.getElementById('attendanceTableBody');
+                    tableBody.innerHTML = '';
+                    data.data.forEach(record => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${record.Name}</td>
+                            <td>${record.Time || '-'}</td>
+                            <td><span class="status-badge status-${record.Status.toLowerCase()}">${record.Status}</span></td>
+                        `;
+                        tableBody.appendChild(row);
+                    });
+                }
+            } catch (error) {
+                console.error('Error fetching attendance:', error);
+            }
+        }
+
+        let attendanceInterval;
+
+        async function stopAttendance() {
+            try {
+                const response = await fetch('/stop_attendance');
+                const data = await response.json();
+                if (data.status === 'success') {
+                    isRunning = false;
+                    showMessage('Attendance system stopped', 'success');
+                    clearInterval(attendanceInterval);
+                    clearTimeout(autoStopTimeout);
+                } else {
+                    showMessage(data.message, 'warning');
+                }
+            } catch (error) {
+                showMessage('Error stopping attendance system', 'danger');
+            }
+        }
+
+        document.getElementById('startBtn').addEventListener('click', async () => {
+            try {
+                const response = await fetch('/start_attendance');
+                const data = await response.json();
+                if (data.status === 'success') {
+                    isRunning = true;
+                    showMessage('Attendance system started - Will auto-stop in 20 minutes', 'success');
+                    attendanceInterval = setInterval(fetchAttendance, 5000);
+                    
+                    // Set auto-stop after 20 minutes
+                    autoStopTimeout = setTimeout(() => {
+                        if (isRunning) {
+                            showMessage('Auto-stopping attendance system after 20 minutes', 'warning');
+                            stopAttendance();
+                        }
+                    }, 20 * 60 * 1000); // 20 minutes in milliseconds
+                } else {
+                    showMessage(data.message, 'warning');
+                }
+            } catch (error) {
+                showMessage('Error starting attendance system', 'danger');
+            }
+        });
+
+        document.getElementById('stopBtn').addEventListener('click', stopAttendance);
+
+        // Initial fetch
+        fetchAttendance();
+    </script>
+</body>
+</html> 

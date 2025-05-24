@@ -1,0 +1,102 @@
+:root {
+    --card-bg: #ffffff;
+    --body-bg: #f8f9fa;
+    --text-color: #212529;
+    --border-color: #dee2e6;
+    --table-bg: #ffffff;
+    --table-hover-bg: #f8f9fa;
+    --alert-bg: #f8f9fa;
+    --alert-border: #dee2e6;
+}
+
+[data-bs-theme="dark"] {
+    --card-bg: #2b3035;
+    --body-bg: #212529;
+    --text-color: #f8f9fa;
+    --border-color: #495057;
+    --table-bg: #2b3035;
+    --table-hover-bg: #343a40;
+    --alert-bg: #2b3035;
+    --alert-border: #495057;
+}
+
+body {
+    background-color: var(--body-bg);
+    color: var(--text-color);
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.card {
+    background-color: var(--card-bg);
+    border-color: var(--border-color);
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+h2, h1 {
+    color: var(--text-color);
+}
+
+.theme-toggle {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 10px;
+    border-radius: 50%;
+    width: 45px;
+    height: 45px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--card-bg);
+    border: 2px solid var(--border-color);
+    color: var(--text-color);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    z-index: 1000;
+}
+
+.theme-toggle:hover {
+    transform: scale(1.1);
+}
+
+.table {
+    color: var(--text-color);
+    background-color: var(--table-bg);
+}
+
+.table-light {
+    background-color: var(--table-bg);
+    color: var(--text-color);
+}
+
+.table-hover tbody tr:hover {
+    background-color: var(--table-hover-bg);
+}
+
+.form-select, .form-label {
+    color: var(--text-color);
+    background-color: var(--card-bg);
+    border-color: var(--border-color);
+}
+
+.form-select:focus {
+    background-color: var(--card-bg);
+    color: var(--text-color);
+}
+
+.alert {
+    background-color: var(--alert-bg);
+    border-color: var(--alert-border);
+    color: var(--text-color);
+}
+
+/* Status badges in dark mode */
+[data-bs-theme="dark"] .status-present {
+    background-color: #1e4620;
+    color: #d4edda;
+}
+
+[data-bs-theme="dark"] .status-absent {
+    background-color: #721c24;
+    color: #f8d7da;
+} 
